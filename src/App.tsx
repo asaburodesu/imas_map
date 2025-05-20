@@ -9,7 +9,6 @@ import Category from './App/Category'
 import Images from './App/Images'
 
 import Tabbar from './App/Tabbar'
-import config from "./config.json";
 import Papa from 'papaparse'
 
 // You can see config.json after running `npm start` or `npm run build`
