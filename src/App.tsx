@@ -2,55 +2,76 @@ import React from "react";
 import { Routes, Route } from "react-router-dom";
 import "./App.scss";
 
-import Home from "./App/Home";
-import List from "./App/List";
-import AboutUs from "./App/AboutUs";
-import Category from "./App/Category";
-import Images from "./App/Images";
-import Tabbar from "./App/Tabbar";
+import Home from './App/Home'
+import List from './App/List'
+import AboutUs from './App/AboutUs'
+import Category from './App/Category'
+import Images from './App/Images'
 
-const sortShopList = (shopList: Pwamap.ShopData[]) => {
-  return shopList.sort((item1, item2) => {
-    const date1 = Date.parse(item1["タイムスタンプ"]);
-    const date2 = Date.parse(item2["タイムスタンプ"]);
-    if (isNaN(date1) || isNaN(date2)) {
-      console.warn("Invalid timestamp:", item1["タイムスタンプ"], item2["タイムスタンプ"]);
-      return 0;
-    }
-    return date2 - date1;
+import Tabbar from './App/Tabbar'
+import table2json from "./lib/table2json";
+
+// You can see config.json after running `npm start` or `npm run build`
+// import config from './config.json'
+
+
+const sortShopList = async (shopList: Pwamap.ShopData[]) => {
+
+  // 新着順にソート
+  return shopList.sort(function (item1, item2) {
+    return Date.parse(item2['タイムスタンプ']) - Date.parse(item1['タイムスタンプ'])
   });
-};
+
+}
 
 const App = () => {
-  const [shopList, setShopList] = React.useState<Pwamap.ShopData[]>([]);
+  const [shopList, setShopList] = React.useState<Pwamap.ShopData[]>([])
 
   React.useEffect(() => {
-    fetch(`${process.env.PUBLIC_URL || ""}/data.json?timestamp=${new Date().getTime()}`)
+    fetch(`${process.env.PUBLIC_URL}/data.json?timestamp=${new Date().getTime()}`)
       .then((response) => {
-        if (!response.ok) {
-          throw new Error(`HTTPエラー: ステータス ${response.status}`);
+        return response.ok ? response.text() : Promise.reject(response.status);
+      })
+      .then((fetchedData) => {
+
+        const data = JSON.parse(fetchedData)
+
+        if ('values' in data === false) {
+          console.log("No Data Found at Spreadsheet")
+          setShopList([])
+          return
         }
-        return response.json();
-      })
-      .then((data: Pwamap.ShopData[]) => {
-        const nextShopList = data
-          .filter((feature) => {
-            if (!feature["緯度"] || !feature["経度"] || !feature["スポット名"]) {
-              return false;
-            }
-            const latLongRegex = /^-?[0-9]+(\.[0-9]+)?$/;
-            return latLongRegex.test(String(feature["緯度"])) && latLongRegex.test(String(feature["経度"]));
-          })
-          .map((feature, index) => ({
-            index,
+
+        let features = table2json(data.values);
+
+        const nextShopList: Pwamap.ShopData[] = []
+        for (let i = 0; i < features.length; i++) {
+          const feature = features[i] as Pwamap.ShopData
+
+          if (!feature['緯度'] || !feature['経度'] || !feature['スポット名']) {
+            continue;
+          }
+          if (!feature['緯度'].match(/^-?[0-9]+(\.[0-9]+)?$/)) {
+            continue
+          }
+          if (!feature['経度'].match(/^-?[0-9]+(\.[0-9]+)?$/)) {
+            continue
+          }
+
+          const shop = {
             ...feature,
-          }));
-        setShopList(sortShopList(nextShopList));
-      })
-      .catch((error) => {
-        console.error("フェッチエラー:", error);
+            index: i
+          }
+
+          nextShopList.push(shop)
+        }
+
+        sortShopList(nextShopList).then((sortedShopList) => {
+          setShopList(sortedShopList)
+        })
+
       });
-  }, []);
+  }, [])
 
   return (
     <div className="app">
@@ -68,6 +89,6 @@ const App = () => {
       </div>
     </div>
   );
-};
+}
 
 export default App;
