@@ -11,8 +11,8 @@ on:
   workflow_dispatch:
 
   schedule:
-    - cron:  '*/10 * * * *'
-    # 10分ごとに実行
+    - cron:  '15 22 * * *'
+    # 毎日7時15分(JST)に実行
 
 permissions:
   contents: write
@@ -22,17 +22,50 @@ permissions:
 jobs:
   ubuntu:
     runs-on: ubuntu-latest
-    env:
-      GOOGLE_SHEET_API_KEY: ${{ secrets.GOOGLE_SHEET_API_KEY }}
-      GOOGLE_SHEET_URL: ${{ secrets.GOOGLE_SHEET_URL }}
     steps:
     - uses: actions/checkout@v2
     - uses: actions/setup-node@v1
       with:
-        node-version: 20.x
+        node-version: 16.x
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Run Python
+      run: python imas_get.py
+      
+    - name: Set Last Update
+      id: set_last_update
+      run: |
+        last_update=$(python update.py)
+        echo "LAST_UPDATE=${last_update}" >> $GITHUB_ENV
+      shell: bash
+
+    - name: Use Last Update
+      run: |
+        echo "Last Update: $LAST_UPDATE"
+
+    - name: Move data.json to public directory
+      run: |
+        mv data.json public/
+        mv src/last_update.json public/
+        
+    - name: Commit changes
+      run: |
+        git config --global user.name "${GITHUB_ACTOR}"
+        git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+        # 変更があるか確認
+        if git diff --quiet; then
+          echo "No changes to commit."
+        else
+          git add public/data.json
+          git commit -m "データを更新 ($LAST_UPDATE)"
+          git push origin master
+        fi
 
     - run: npm install
-    - run: npm run build
+
+    - run: npm run build -repository=${GITHUB_REPOSITORY}
 
     - name: Deploy
       uses: JamesIves/github-pages-deploy-action@4.1.1
