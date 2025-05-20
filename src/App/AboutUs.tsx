@@ -1,34 +1,53 @@
-import './AboutUs.scss'
-import config from '../config.json'
+import './AboutUs.scss';
+import config from '../config.json';
 import { FaPlus } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
 
 const Content = () => {
+  const [lastUpdate, setLastUpdate] = useState('');
+
+  useEffect(() => {
+    const fetchLastUpdate = async () => {
+      try {
+        const response = await fetch('https://asaburodesu.github.io/imas_map/last_update.json?timestamp=' + new Date().getTime(), {
+          cache: 'no-cache', // キャッシュを無効にする
+        });
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setLastUpdate(data.last_update);
+      } catch (error) {
+        console.error('Fetching last update failed:', error);
+        setLastUpdate('情報の取得に失敗しました'); // エラーメッセージを設定
+      }
+    };
+
+    fetchLastUpdate();
+  }, []); // 最初にコンポーネントがマウントされたときに一度だけ実行
+
   const clickHandler = () => {
     if (config.form_url) {
-      window.location.href = config.form_url
+      window.location.href = config.form_url;
     }
-  }
-
+  };
 
   return (
     <div className="about-us">
       <div className="container">
         <div className="branding">
-          <div className="image"><img src={`${process.env.PUBLIC_URL}/icon-pwamap.svg`} alt=""/></div>
-          <div className="logo">Geolonia PWAマップ</div>
+          <div className="logo">アイドルマスターツアーズ設置店舗マップ</div>
         </div>
 
-        <p>Geolonia PWAマップは、Google スプレッドシートを更新するだけでオリジナルの地図アプリを作成することができます。</p>
-        <p>プログラムはオープンソースで公開しているため、自由にカスタマイズしてご利用いただけます。</p>
-
-        <h2> Geolonia PWAマップについて</h2>
-        <p><a href="https://blog.geolonia.com/2022/05/17/pwamap-beta.html" target='_blank' rel="noreferrer">https://blog.geolonia.com/2022/05/17/pwamap-beta.html</a></p>
-
-        <p>また、独自ドメインでの利用やデザインのカスタマイズや利用に必要な緯度・経度情報の提供も有償で別途承ります。ご希望の方は下記までお問い合わせください。</p>
-
-        <h2>お問い合わせフォーム</h2>
-        <p><a href="https://geolonia.com/contact/" target='_blank' rel="noreferrer">https://geolonia.com/contact/</a></p>
-        <p>※カスタマイズおよびアプリの作成・利用についてはサポート対象外となります。あらかじめご了承ください。</p>
+        <h2>このマップについて</h2>
+        <p>作成者:<a href="https://twitter.com/asaburodesu" target='_blank' rel="noreferrer">asaburodesu</a></p>
+        <p>最終更新: {lastUpdate}</p>
+        <p>当サイトでは可能な限り情報の正確性を心がけていますが、安全性や確実な情報提供を保証するものではありません。掲載内容で生じた損害（間接的を含む）に対する一切の責任を負いません。</p>
+        
+        <h2>他機種マップ</h2>
+        <p><a href="https://asaburodesu.github.io/chu_map/" target='_blank' rel="noreferrer">オンゲキ設置店舗マップ</a></p>
+        <p><a href="https://asaburodesu.github.io/geki_map/" target='_blank' rel="noreferrer">オンゲキ設置店舗マップ</a></p>
+        <p><a href="https://asaburodesu.github.io/mai_map/" target='_blank' rel="noreferrer">maimai設置店舗マップ</a></p>
 
         {config.form_url?
           <>
