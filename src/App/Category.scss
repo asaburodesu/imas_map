@@ -16,6 +16,8 @@
   -ms-overflow-style: none;
   /* Firefox 対応 */
   scrollbar-width: none;
+  max-width: 900px;	
+  margin: 0 auto;
 
   &::-webkit-scrollbar
   {
