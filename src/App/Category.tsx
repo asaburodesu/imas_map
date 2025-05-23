@@ -38,7 +38,7 @@ const Content = (props: Props) => {
       <div className="category">
         <div className="container">
           <div className="category-item">
-            <label htmlFor="category-select">カテゴリから選ぶ</label>
+            <label htmlFor="category-select">都道府県から選ぶ</label>
             <Select
               onChange={(e) => {
                 if (e) {
