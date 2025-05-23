@@ -18,7 +18,7 @@ html, body, #root
 {
   width: 300px;
   font-size: 25px;
-  text-align: center;
+  text-align: center
 }
 
 img
@@ -26,7 +26,7 @@ img
   max-width: 100%;
 }
 
-@media only screen and (max-width: 960px) {
+
   .github-fork-ribbon
   {
     display: none;
@@ -36,4 +36,3 @@ img
   {
     background: none !important;
   }
-}
