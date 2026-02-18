@@ -48,6 +48,8 @@ const Content = () => {
         <p><a href="https://asaburodesu.github.io/chu_map/" target='_blank' rel="noreferrer">CHUNITHM設置店舗マップ</a></p>
         <p><a href="https://asaburodesu.github.io/geki_map/" target='_blank' rel="noreferrer">オンゲキ設置店舗マップ</a></p>
         <p><a href="https://asaburodesu.github.io/mai_map/" target='_blank' rel="noreferrer">maimai設置店舗マップ</a></p>
+        <p><a href="https://asaburodesu.github.io/taiko_map/" target='_blank' rel="noreferrer">太鼓の達人設置店舗マップ</a></p>
+        <p><a href="https://asaburodesu.github.io/gigo_map/" target='_blank' rel="noreferrer">GiGO店舗マップ</a></p>
 
         {config.form_url?
           <>
@@ -64,3 +66,4 @@ const Content = () => {
 };
 
 export default Content;
+
