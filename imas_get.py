@@ -6,6 +6,47 @@ import re
 import json
 import time
 
+def is_zero_coords(lat, lng):
+    """座標が0.0,0.0かどうかを判定する"""
+    try:
+        return float(lat) == 0.0 and float(lng) == 0.0
+    except (ValueError, TypeError):
+        return False
+
+def geocode_address(address):
+    """住所から座標を取得する（国土地理院API使用）"""
+    zen = "０１２３４５６７８９ー−"
+    han = "0123456789--"
+    table = str.maketrans(zen, han)
+    normalized = address.translate(table)
+
+    try:
+        geo_url = "https://msearch.gsi.go.jp/address-search/AddressSearch"
+        params = {"q": normalized}
+        res = requests.get(geo_url, params=params, timeout=10)
+        data = res.json()
+        if data:
+            lon, lat = data[0]["geometry"]["coordinates"]
+            print(f"  -> 国土地理院で取得: {lat}, {lon}")
+            return str(lat), str(lon)
+    except Exception as e:
+        print(f"  国土地理院API失敗: {e}")
+
+    try:
+        geo_url = "https://nominatim.openstreetmap.org/search"
+        params = {"q": normalized, "format": "json", "limit": 1}
+        headers = {"User-Agent": "taiko_map/1.0"}
+        time.sleep(1)
+        res = requests.get(geo_url, params=params, headers=headers, timeout=10)
+        data = res.json()
+        if data:
+            print(f"  -> Nominatimで取得: {data[0]['lat']}, {data[0]['lon']}")
+            return data[0]["lat"], data[0]["lon"]
+    except Exception as e:
+        print(f"  Nominatim失敗: {e}")
+
+    return "", ""
+
 # シングルクォートをダブルクォートに変換し、JSONを修正する関数
 def fix_json_string(json_str):
     try:
@@ -125,14 +166,22 @@ with open('data.json', 'w', encoding='utf-8', errors='ignore') as f:
                                 for location in locations_data:
                                     loc_name = location.get("name", "").strip()
                                     if loc_name == name:
-                                        spot_dict[name]["latitude"] = str(location.get("latitude", ""))
-                                        spot_dict[name]["longitude"] = str(location.get("longitude", ""))
+                                        lat = str(location.get("latitude", ""))
+                                        lng = str(location.get("longitude", ""))
+                                        if is_zero_coords(lat, lng):
+                                            print(f"スポット: {name} の座標が0.0,0.0のため住所からジオコーディング中...")
+                                            lat, lng = geocode_address(spot_dict[name]["address"])
+                                        spot_dict[name]["latitude"] = lat
+                                        spot_dict[name]["longitude"] = lng
                                         print(f"スポット: {name}, 緯度: {spot_dict[name]['latitude']}, 経度: {spot_dict[name]['longitude']} (from locations)")
                                         found = True
                                         break
                                 if not found and spot_dict[name]["detail_url"]:
                                     print(f"スポット {name} はlocationsにないため、詳細ページをチェック: {spot_dict[name]['detail_url']}")
                                     latitude, longitude = get_lat_lng_from_detail_page(spot_dict[name]["detail_url"])
+                                    if is_zero_coords(latitude, longitude):
+                                        print(f"スポット: {name} の詳細ページ座標が0.0,0.0のため住所からジオコーディング中...")
+                                        latitude, longitude = geocode_address(spot_dict[name]["address"])
                                     spot_dict[name]["latitude"] = latitude
                                     spot_dict[name]["longitude"] = longitude
                                     time.sleep(1)  # 詳細ページリクエストの間隔
@@ -150,6 +199,9 @@ with open('data.json', 'w', encoding='utf-8', errors='ignore') as f:
                     if info["detail_url"]:
                         print(f"詳細ページをスクレイピング中: {info['detail_url']}")
                         latitude, longitude = get_lat_lng_from_detail_page(info["detail_url"])
+                        if is_zero_coords(latitude, longitude):
+                            print(f"スポット: {name} の詳細ページ座標が0.0,0.0のため住所からジオコーディング中...")
+                            latitude, longitude = geocode_address(info["address"])
                         spot_dict[name]["latitude"] = latitude
                         spot_dict[name]["longitude"] = longitude
                         time.sleep(1)
