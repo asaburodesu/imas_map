@@ -6,7 +6,7 @@ name: build
 on:
   push:
     branches:
-      - 'master'
+      - 'm@ster'
 
   workflow_dispatch:
 
@@ -61,7 +61,7 @@ jobs:
         else
           git add public/data.json
           git commit -m "データを更新 ($LAST_UPDATE)"
-          git push origin master
+          git push origin m@ster
         fi
 
     - run: npm install
