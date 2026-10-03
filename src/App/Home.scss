@@ -10,6 +10,12 @@
   &.inactive
   {
     visibility: hidden;
+
+    // Geolonia の帰属表示は visibility: visible を指定していて隠れないので、地図のボタンごと消す
+    .maplibregl-control-container
+    {
+      display: none;
+    }
   }
 
   // 都道府県のバーと重ならないよう、右上の地図ボタンをバーの下にずらす
