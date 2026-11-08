@@ -7,7 +7,7 @@ import json
 import time
 
 SCRAPING_HEADERS = {
-    "User-Agent": "Mozilla/5.0",
+    "User-Agent": "Mozilla/5.0 (compatible; ImasMap/1.0; +https://x.com/asaburodesu)",
     "Accept": "text/html,application/xhtml+xml",
     "Accept-Language": "ja-JP,ja;q=0.9",
 }
